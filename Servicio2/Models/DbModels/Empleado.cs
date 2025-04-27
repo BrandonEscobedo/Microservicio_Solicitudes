@@ -38,6 +38,7 @@ namespace Servicio2.Models.DbModels
         [Column("id_rol")]
         public int? IdRol { get; set; }
 
+        public string correo { get; set; }
         public roles? Rol { get; set; }
 
         [ForeignKey("Jefe")]

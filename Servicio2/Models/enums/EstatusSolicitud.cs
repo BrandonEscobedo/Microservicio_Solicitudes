@@ -2,14 +2,14 @@
 {
     public enum EstatusSolicitud
     {
-        Pendiente,
-        Aprobada,
-        Rechazada
+        Pendiente=0,
+        Aprobada=1,
+        Rechazada=2
     }
     public enum TipoSolicitud
     {
-        Vacaciones,
-        Ausencia
+        Vacaciones=0,
+        Ausencia=1
     }
 
 }

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Servicio2.Models.DbModels
 {
+    [Table("solicitudes")]
     public class Solicitud
     {
         [Key]
@@ -13,6 +14,10 @@ namespace Servicio2.Models.DbModels
         [Required]
         [Column("empleado_id")]
         public int EmpleadoId { get; set; }
+
+        [Required]
+        [Column("folio")]
+        public string Folio { get; set; }=string.Empty;
 
         [ForeignKey("EmpleadoId")]
         public Empleados Empleado { get; set; } = null!;

@@ -1,28 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Servicio2.Models.DbModels;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
 namespace Servicio2.EndPoints
 {
     public static class Servicio2EndPoints
     {
-        public static void AddServicio2EndPoints(this IEndpointRouteBuilder app)
+        public static void AddEmpleadosEndPoints(this IEndpointRouteBuilder app)
         {
-          var group=  app.MapGroup("api/v1/");
+          var group= app.MapGroup("api/v1/").WithTags("Empleados");
             group.MapGet("GetEmpleados", async (Context context) =>
             {
-                return Results.Ok(context.Empleados.ToList());
+                return Results.Ok(await context.Empleados.ToListAsync());
             });
             group.MapPost("CrearEmpleado", async (Context context, [FromBody] empleadoDTO empleadoDTo,IPublishEndpoint publish) =>
             {
                 var empleado = empleadoDTo.toEntity();
                 await publish.Publish(empleado);
-                //var response = context.Add(empleado);
+                var response = context.Add(empleado);
+                await context.SaveChangesAsync();
             });
+            
         }
          
 
@@ -35,7 +34,7 @@ namespace Servicio2.EndPoints
   
         public string Apellidos { get; set; }
         public string? Cargo { get; set; }
-
+        public string correo { get; set; } = string.Empty;
         public string? Departamento { get; set; }
 
         public int? IdRol { get; set; }
@@ -52,7 +51,7 @@ namespace Servicio2.EndPoints
                 JefeId = this.JefeId,
                 Nombres = this.Nombres,
                 NumeroEmpleado = this.NumeroEmpleado,
-
+                correo = this.correo
             };
         }
    

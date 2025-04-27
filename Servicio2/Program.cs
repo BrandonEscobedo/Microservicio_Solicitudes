@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMassTransit(config =>{
     config.SetKebabCaseEndpointNameFormatter();
     config.AddConsumer<EmpleadoCreadoConsumer>();
+    config.AddConsumer<SolicitudCreadaConsumer>();
     config.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", h =>
@@ -15,10 +16,11 @@ builder.Services.AddMassTransit(config =>{
             h.Username("guest"); 
             h.Password("guest");
         });
+      
         cfg.ConfigureEndpoints(context);
     });
 });
-
+builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var dbConnection = builder.Configuration.GetConnectionString("mysql")!;
@@ -33,6 +35,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.AddServicio2EndPoints();
+app.AddSolicitudesEndPoints();
+app.AddEmpleadosEndPoints();
 app.Run();
