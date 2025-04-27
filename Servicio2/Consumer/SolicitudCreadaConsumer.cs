@@ -5,7 +5,7 @@ using Servicio2.Models.DbModels;
 
 namespace Servicio2.Consumer
 {
-    public class SolicitudCreadaConsumer(IHttpClientFactory _httpClientFactory, Context Dbcontext) : IConsumer<SolicitudCreadaEvent>
+    public class SolicitudCreadaConsumer(IHttpClientFactory _httpClientFactory, Context Dbcontext,IConfiguration configuration) : IConsumer<SolicitudCreadaEvent>
     {
 
         public async Task Consume(ConsumeContext<SolicitudCreadaEvent> context)
@@ -36,7 +36,7 @@ namespace Servicio2.Consumer
                 nombresJefe = datosJefe.Nombres + " " + datosJefe.Apellidos,
                 NumeroEmpleado = empleado.NumeroEmpleado,
             };
-            var webhookUrl = "https://hook.us2.make.com/t2rhquvfyakqgnao6fiuzyibittcjbpn";
+            var webhookUrl = configuration.GetSection("WebHookMakeIA:URL").Value;
 
             var response = await httpClient.PostAsJsonAsync(webhookUrl, payload);
             if (!response.IsSuccessStatusCode)

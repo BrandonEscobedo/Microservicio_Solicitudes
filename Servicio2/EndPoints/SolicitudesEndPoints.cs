@@ -19,15 +19,30 @@ namespace Servicio2.EndPoints
             });
             app.MapGet("ObtenerSolicitud", async (Context context, [FromQuery] string folio, string numeroEmpleado) =>
             {
-                int idEmpleado = await context.Empleados.Where(x=>x.NumeroEmpleado==numeroEmpleado).Select(x=>x.Id).FirstOrDefaultAsync();
-                if (idEmpleado <=0)
+                int idEmpleado = await context.Empleados.Where(x => x.NumeroEmpleado == numeroEmpleado).Select(x => x.Id).FirstOrDefaultAsync();
+                if (idEmpleado <= 0)
                     return Results.BadRequest("No se encontro el empleado");
-                var solicitud = await context.solicitud.Where(x => x.Folio == folio && x.EmpleadoId == idEmpleado).Include(x=>x.Empleado).FirstOrDefaultAsync();
+                var solicitud = await context.solicitud.Where(x => x.Folio == folio && x.EmpleadoId == idEmpleado).Include(x => x.Empleado).FirstOrDefaultAsync();
                 if (solicitud == null)
                     return Results.BadRequest("No se encontro esta solicitud ");
-             
+
                 return Results.Ok(solicitud);
             });
+
+            app.MapPut("ActualizarEstatus", async (Context context,[FromBody] string folio, string numeroEmpleado, EstatusSolicitud estatus,IConfiguration confifguration) =>
+            {
+              var result =  await context.solicitud.Where(x => x.Folio == folio).ExecuteUpdateAsync(s => s.SetProperty(x => x.Estatus,estatus));
+                if(result>=1)
+                {
+
+                    var hebHookURL= confifguration.GetSection("WebHookMakeIA:URL").Value;
+
+
+                    return Results.Ok("Se actualizo el estatus correctamente");
+                }
+                return Results.BadRequest("No se encontro la solicitud");
+            });
+
             app.MapPost("CrearSolicitud", async (Context context, [FromBody] SolicitudDTO solicitudDto, IPublishEndpoint publish) =>
             {
                 var solicitud = solicitudDto.ToEntity();

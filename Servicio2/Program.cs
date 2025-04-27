@@ -11,10 +11,10 @@ builder.Services.AddMassTransit(config =>{
     config.AddConsumer<SolicitudCreadaConsumer>();
     config.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", h =>
+        cfg.Host((builder.Configuration.GetSection("rabbitMQ:URL").Value!), h =>
         {
-            h.Username("guest"); 
-            h.Password("guest");
+            h.Username(builder.Configuration.GetSection("rabbitMQ:UserName").Value!); 
+            h.Password(builder.Configuration.GetSection("rabbitMQ:password").Value!);
         });
       
         cfg.ConfigureEndpoints(context);
