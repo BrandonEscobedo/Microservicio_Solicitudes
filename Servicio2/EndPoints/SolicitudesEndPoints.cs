@@ -5,7 +5,7 @@ using Servicio2.Models.DbModels;
 using Servicio2.Models.enums;
 using Servicio2.Events;
 using Servicio2.Utility;
-
+using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Servicio2.EndPoints
 {
     public static class SolicitudesEndPoints
@@ -29,16 +29,60 @@ namespace Servicio2.EndPoints
                 return Results.Ok(solicitud);
             });
 
-            app.MapPut("ActualizarEstatus", async (Context context,[FromBody] string folio, string numeroEmpleado, EstatusSolicitud estatus,IConfiguration confifguration) =>
+            app.MapPut("ActualizarEstatus", async (Context context, [FromBody] string folio, string numeroEmpleado,
+                EstatusSolicitud estatus, IConfiguration configuration, IHttpClientFactory _httpClientFactory) =>
             {
-              var result =  await context.solicitud.Where(x => x.Folio == folio).ExecuteUpdateAsync(s => s.SetProperty(x => x.Estatus,estatus));
-                if(result>=1)
+                var result = await context.solicitud.Where(x => x.Folio == folio).ExecuteUpdateAsync(s => s.SetProperty(x => x.Estatus, estatus));
+                if (result >= 1)
                 {
+                
 
-                    var hebHookURL= confifguration.GetSection("WebHookMakeIA:URL").Value;
-
-
-                    return Results.Ok("Se actualizo el estatus correctamente");
+                    var hebHookURL = configuration.GetSection("WebHookMakeIA:CalendarioURLWH").Value;
+                    var empleado = await context.Empleados.Where(x => x.NumeroEmpleado == numeroEmpleado).Select(x => new { x.Nombres, x.Apellidos, x.correo, x.JefeId }).FirstOrDefaultAsync();
+                    if (empleado == null)
+                        return Results.BadRequest("No se encontro el empleado");
+                    var solicitud = await context.solicitud.Where(x => x.Folio == folio).Include(x => x.Empleado).FirstOrDefaultAsync();
+                    if (solicitud == null)
+                        return Results.BadRequest("No se encontro la solicitud");
+                    var payload = new SolicitudEstatus()
+                    {
+                        Folio = folio,
+                        Tipo = estatus.ToString(),
+                        NombresEmpleado = empleado.Nombres + " " + empleado.Apellidos,
+                        NumeroEmpleado = numeroEmpleado,
+                        EstatusSolicitud = estatus,
+                        CorreoInteresado = empleado.correo,
+                        SolicitudAceptada = new DatosSolicitudAceptada()
+                        {
+                            FechaFin = solicitud.FechaFin,
+                            FechaInicio = solicitud.FechaInicio,
+                        }
+                    };
+                    if (estatus == EstatusSolicitud.Aprobada)
+                    {
+                        var correosDepartamentos = await context.Empleados.Where(x => x.JefeId == empleado.JefeId).Select(x =>new { x.correo,x.Nombres,x.Apellidos}).ToListAsync();
+                       //var empleadoInteresadoCorreo= correosDepartamentos.Where(x=>x.correo == empleado.correo).FirstOrDefault();
+                       // if(empleadoInteresadoCorreo != null)
+                       // {
+                       //     correosDepartamentos.Remove(empleadoInteresadoCorreo);
+                       // }
+                
+                        payload.CorreosInteresados = correosDepartamentos.Select(x => x.correo).ToArray();
+                        payload.SolicitudAceptada.InteresadosDepartamento = correosDepartamentos
+                            .Select(x => new Attendees
+                            {
+                                Email = x.correo,
+                                Name = $"{x.Nombres} {x.Apellidos}"
+                            }).ToList();
+                    }
+                    var httpclient = _httpClientFactory.CreateClient();
+                    var response = await httpclient.PostAsJsonAsync(hebHookURL, payload);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // Manejar errores aquí
+                        throw new Exception($"Error al llamar al webhook: {response.StatusCode}");
+                    }
+                    return Results.Ok(payload);
                 }
                 return Results.BadRequest("No se encontro la solicitud");
             });
@@ -63,6 +107,29 @@ namespace Servicio2.EndPoints
             });
         }
 
+    }
+    public class SolicitudEstatus
+    {
+        public EstatusSolicitud EstatusSolicitud { get; set; } = EstatusSolicitud.Pendiente;
+        public string NombresEmpleado { get; set; } = string.Empty;
+        public string NumeroEmpleado { get; set; } = string.Empty;
+        public string Folio { get; set; } = string.Empty;
+        public string CorreoInteresado { get; set; } = string.Empty;
+        public string Tipo { get; set; } = string.Empty;
+       public Array CorreosInteresados { get; set; } = Array.Empty<string>();
+        public DatosSolicitudAceptada? SolicitudAceptada { get; set; } = new DatosSolicitudAceptada();
+    }
+    public class DatosSolicitudAceptada
+    {
+        public List<Attendees>? InteresadosDepartamento { get; set; } = new List<Attendees>();
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+    }
+
+    public class Attendees
+    {
+        public string? Email { get; set; }
+        public string? Name { get; set; }
     }
     public class SolicitudDTO
     {

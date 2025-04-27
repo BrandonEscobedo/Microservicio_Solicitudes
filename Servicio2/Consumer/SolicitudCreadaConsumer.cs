@@ -16,7 +16,6 @@ namespace Servicio2.Consumer
             {
                 throw new Exception($"Empleado no encontrado: {solicitud.EmpleadoId}");
             }
-            //var interesados = Dbcontext.Empleados.Where(x=>x.JefeId == empleado.Id).Select(x=>x.correo).ToList();
             var httpClient = _httpClientFactory.CreateClient();
             var datosJefe = Dbcontext.Empleados.Where(x => x.Id == empleado.JefeId).Select(e => new { e.Nombres, e.Apellidos, e.correo }).FirstOrDefault();
             if (datosJefe == null)
@@ -60,16 +59,5 @@ namespace Servicio2.Consumer
         public DateTime FechaFin { get; set; }
         public string nombresJefe { get; set; } = string.Empty;
     }
-    public class SolicitudAceptada
-    {
 
-        public string nombres { get; set; } = string.Empty;
-        public List<string> interesados = new List<string>();
-        public string NumeroEmpleado { get; set; } = string.Empty;
-        public string Folio { get; set; } = string.Empty;
-        public string Tipo { get; set; } = string.Empty;
-        public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }
-
-    }
 }
