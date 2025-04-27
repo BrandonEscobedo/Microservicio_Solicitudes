@@ -1,11 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using MassTransit;
+﻿using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Servicio2.Models.DbModels;
 using Servicio2.Models.enums;
-using MassTransit.SqlTransport.Topology;
 using Servicio2.Events;
 using Servicio2.Utility;
 
@@ -19,6 +16,17 @@ namespace Servicio2.EndPoints
             app.MapGet("GetSolicitudes", async (Context context) =>
             {
                 return Results.Ok(await context.solicitud.ToListAsync());
+            });
+            app.MapGet("ObtenerSolicitud", async (Context context, [FromQuery] string folio, string numeroEmpleado) =>
+            {
+                int idEmpleado = await context.Empleados.Where(x=>x.NumeroEmpleado==numeroEmpleado).Select(x=>x.Id).FirstOrDefaultAsync();
+                if (idEmpleado <=0)
+                    return Results.BadRequest("No se encontro el empleado");
+                var solicitud = await context.solicitud.Where(x => x.Folio == folio && x.EmpleadoId == idEmpleado).Include(x=>x.Empleado).FirstOrDefaultAsync();
+                if (solicitud == null)
+                    return Results.BadRequest("No se encontro esta solicitud ");
+             
+                return Results.Ok(solicitud);
             });
             app.MapPost("CrearSolicitud", async (Context context, [FromBody] SolicitudDTO solicitudDto, IPublishEndpoint publish) =>
             {
@@ -58,7 +66,19 @@ namespace Servicio2.EndPoints
         public string? Comentarios { get; set; }
         public SolicitudDTO()
         {
-            
+
+        }
+        public SolicitudDTO toDto(Solicitud solicitud)
+        {
+            this.Id = solicitud.Id;
+            this.EmpleadoId = solicitud.EmpleadoId;
+            this.FechaSolicitud = solicitud.FechaSolicitud;
+            this.FechaInicio = solicitud.FechaInicio;
+            this.FechaFin = solicitud.FechaFin;
+            this.Estatus = solicitud.Estatus;
+            this.Tipo = solicitud.Tipo;
+            this.Comentarios = solicitud.Comentarios;
+            return this;
         }
         public Solicitud ToEntity()
         {
