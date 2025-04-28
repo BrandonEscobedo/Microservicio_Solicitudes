@@ -71,8 +71,8 @@ namespace Servicio2.EndPoints
                         payload.SolicitudAceptada.InteresadosDepartamento = correosDepartamentos
                             .Select(x => new Attendees
                             {
-                                Email = x.correo,
-                                Name = $"{x.Nombres} {x.Apellidos}"
+                                address = x.correo,
+                                name = $"{x.Nombres} {x.Apellidos}"
                             }).ToList();
                     }
                     var httpclient = _httpClientFactory.CreateClient();
@@ -128,8 +128,8 @@ namespace Servicio2.EndPoints
 
     public class Attendees
     {
-        public string? Email { get; set; }
-        public string? Name { get; set; }
+        public string? address { get; set; }
+        public string? name { get; set; }
     }
     public class SolicitudDTO
     {
@@ -165,8 +165,8 @@ namespace Servicio2.EndPoints
         public Solicitud ToEntity()
         {
             this.FechaSolicitud = DateTime.Now;
-            this.FechaInicio = DateTime.Now.AddDays(10);
-            this.FechaFin = FechaInicio.AddDays(10);
+            this.FechaInicio = DateTime.Now.AddDays(20);
+            this.FechaFin = FechaInicio.AddDays(20);
             return new Solicitud()
             {
                 Id = this.Id,
