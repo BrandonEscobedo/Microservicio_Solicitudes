@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Servicio2.EndPoints
 {
-    public static class Servicio2EndPoints
+    public static class EmpleadosEndPoints
     {
         public static void AddEmpleadosEndPoints(this IEndpointRouteBuilder app)
         {

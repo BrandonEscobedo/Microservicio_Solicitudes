@@ -5,7 +5,6 @@ using Servicio2.Models.DbModels;
 using Servicio2.Models.enums;
 using Servicio2.Events;
 using Servicio2.Utility;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Servicio2.EndPoints
 {
     public static class SolicitudesEndPoints
@@ -165,8 +164,8 @@ namespace Servicio2.EndPoints
         public Solicitud ToEntity()
         {
             this.FechaSolicitud = DateTime.Now;
-            this.FechaInicio = DateTime.Now.AddDays(20);
-            this.FechaFin = FechaInicio.AddDays(20);
+            this.FechaInicio = DateTime.Now.AddDays(30);
+            this.FechaFin = FechaInicio.AddDays(3);
             return new Solicitud()
             {
                 Id = this.Id,

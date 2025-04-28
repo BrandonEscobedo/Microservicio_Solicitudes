@@ -51,7 +51,6 @@ namespace Servicio2.Consumer
         public string CorreoJefe { get; set; } = string.Empty;
         public string CorreoEmpleado { get; set; } = string.Empty;
         public string NumeroEmpleado { get; set; } = string.Empty;
-
         public string Folio { get; set; } = string.Empty;
         public string Tipo { get; set; } = string.Empty;
         public string Nombres { get; set; } = string.Empty;

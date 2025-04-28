@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using RabbitMQ.Client;
 using Servicio2.EndPoints;
 using Servicio2.Models.DbModels;
 using MassTransit;
@@ -15,8 +14,8 @@ builder.Services.AddMassTransit(config =>{
         {
             h.Username(builder.Configuration.GetSection("rabbitMQ:UserName").Value!); 
             h.Password(builder.Configuration.GetSection("rabbitMQ:password").Value!);
-        });
-      
+            
+        });      
         cfg.ConfigureEndpoints(context);
     });
 });
