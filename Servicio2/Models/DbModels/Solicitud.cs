@@ -14,10 +14,11 @@ namespace Servicio2.Models.DbModels
         [Required]
         [Column("empleado_id")]
         public int EmpleadoId { get; set; }
-
+        [Column("jefeId")]
+        public int JefeAsignadoId { get; set; }
         [Required]
         [Column("folio")]
-        public string Folio { get; set; }=string.Empty;
+        public string Folio { get; set; } = string.Empty;
 
         [ForeignKey("EmpleadoId")]
         public Empleados Empleado { get; set; } = null!;

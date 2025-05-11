@@ -17,7 +17,7 @@ namespace Servicio2.Consumer
                 throw new Exception($"Empleado no encontrado: {solicitud.EmpleadoId}");
             }
             var httpClient = _httpClientFactory.CreateClient();
-            var datosJefe = Dbcontext.Empleados.Where(x => x.Id == empleado.JefeId).Select(e => new { e.Nombres, e.Apellidos, e.correo }).FirstOrDefault();
+            var datosJefe = Dbcontext.Empleados.Where(x => x.Id == empleado.JefeId).Select(e => new { e.Nombres, e.Apellidos, e.correo,e.NumeroEmpleado }).FirstOrDefault();
             if (datosJefe == null)
             {
                 throw new Exception($"Jefe no encontrado para el empleado con ID: {empleado.Id}");
@@ -31,9 +31,11 @@ namespace Servicio2.Consumer
                 Folio = solicitud.Folio,
                 Tipo = solicitud.Tipo.ToString(),
                 FechaFin = solicitud.FechaFin,
+                FechaSolicitud = solicitud.FechaSolicitud,
                 FechaInicio = solicitud.FechaInicio,
                 nombresJefe = datosJefe.Nombres + " " + datosJefe.Apellidos,
                 NumeroEmpleado = empleado.NumeroEmpleado,
+                NumeroEmpleadoJefe=datosJefe.NumeroEmpleado,
             };
             var webhookUrl = configuration.GetSection("WebHookMakeIA:URL").Value;
 
@@ -51,11 +53,13 @@ namespace Servicio2.Consumer
         public string CorreoJefe { get; set; } = string.Empty;
         public string CorreoEmpleado { get; set; } = string.Empty;
         public string NumeroEmpleado { get; set; } = string.Empty;
+        public string NumeroEmpleadoJefe { get; set; }= string.Empty;   
         public string Folio { get; set; } = string.Empty;
         public string Tipo { get; set; } = string.Empty;
         public string Nombres { get; set; } = string.Empty;
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
+        public DateTime FechaSolicitud { get; set; }
         public string nombresJefe { get; set; } = string.Empty;
     }
 

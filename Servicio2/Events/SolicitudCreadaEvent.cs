@@ -7,6 +7,7 @@
         public string Folio { get; set; }=string.Empty;
         public string Tipo { get; set; } = string.Empty;
         public DateTime FechaInicio { get; set; }
+        public DateTime FechaSolicitud { get; set; }
         public DateTime FechaFin { get; set; }
         public SolicitudCreadaEvent()
         {
