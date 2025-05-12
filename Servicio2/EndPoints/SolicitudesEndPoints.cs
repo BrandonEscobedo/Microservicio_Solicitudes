@@ -18,11 +18,10 @@ namespace Servicio2.EndPoints
         public static void AddSolicitudesEndPoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("api/v1/solicitudes").WithTags("Solicitudes");
-            group.MapGet("GetSolicitudes", [Authorize(Roles = "Empleado")] async (Context context, IMapper mapper) =>
+            group.MapGet("GetSolicitudes",[Authorize(Roles ="RH")] async (Context context, IMapper mapper) =>
             {
                 var solicitudes = await context.solicitud.Include(x => x.Empleado)
                 .ThenInclude(x => x.Rol).Include(x => x.Empleado.Jefe).ToListAsync();
-
                 if (solicitudes == null)
                     return Results.BadRequest("No se encontraron solicitudes");
                 var solicitudesDTo = mapper.Map<List<SolicitudResponse>>(solicitudes);
@@ -42,7 +41,7 @@ namespace Servicio2.EndPoints
                 var solicitudesDTo = mapper.Map<List<SolicitudResponse>>(solicitudes);
                 return Results.Ok(solicitudesDTo);
             });
-            group.MapGet("GetSolicitudesTipo",[Authorize(Roles = "RH")] async (Context context, IMapper mapper, string estatus) =>
+            group.MapGet("GetSolicitudesTipo", [Authorize(Roles = "RH")] async (Context context, IMapper mapper, string estatus) =>
             {
                 if (Enum.TryParse<EstatusSolicitud>(estatus, out var estatusEnum))
                 {
@@ -56,15 +55,22 @@ namespace Servicio2.EndPoints
                 return Results.BadRequest("Este tipo de estatus de solicitud no existe, por favor ingrese uno valido.");
 
             });
-
-            group.MapGet("ObtenerEstatusSolicitud",[Authorize] async ([FromQuery] string folio, Context context) =>
+            group.MapGet("ObtenerSolicitudesPorFolio", async (Context context, [FromQuery] string folio,IMapper mapper) =>
+            {
+                var solicitud = await context.solicitud.Where(x => x.Folio == folio).Include(x => x.Empleado).FirstOrDefaultAsync();
+                if (solicitud == null)
+                    return Results.BadRequest("No se encontro la solicitud");
+                var solicitudDto = mapper.Map<SolicitudResponse>(solicitud);
+                return Results.Ok(solicitudDto);
+            });
+            group.MapGet("ObtenerEstatusSolicitud", [Authorize] async ([FromQuery] string folio, Context context) =>
             {
                 var response = await context.HistorialEstatus.Where(x => x.Folio == folio).Include(x => x.Solicitud).FirstOrDefaultAsync();
                 if (response == null)
                     return Results.BadRequest("No se encontro la solicitud");
                 return Results.Ok(response);
             });
-            group.MapGet("ObtenerSolicitud",[Authorize] async (Context context, [FromQuery] string folio, string numeroEmpleado) =>
+            group.MapGet("ObtenerSolicitud", [Authorize] async (Context context, [FromQuery] string folio, string numeroEmpleado) =>
             {
                 int idEmpleado = await context.Empleados.Where(x => x.NumeroEmpleado == numeroEmpleado).Select(x => x.Id).FirstOrDefaultAsync();
                 if (idEmpleado <= 0)
@@ -75,13 +81,12 @@ namespace Servicio2.EndPoints
 
                 return Results.Ok(solicitud);
             });
-
-            group.MapPut("ActualizarEstatus",[Authorize(Roles ="RH,Gerente")] async (CambioEstatus cambioEstatus, Context context, IConfiguration configuration, IHttpClientFactory _httpClientFactory) =>
+            group.MapPut("ActualizarEstatus",  async (CambioEstatus cambioEstatus, Context context,
+                IConfiguration configuration, IHttpClientFactory _httpClientFactory) =>
             {
                 var solicitud = await context.solicitud.Where(x => x.Folio == cambioEstatus.folio).Include(x => x.Empleado).FirstOrDefaultAsync();
                 if (solicitud == null)
                     return Results.BadRequest("No se encontro la solicitud");
-
                 await context.HistorialEstatus.AddAsync(new HistorialEstatus
                 {
                     Folio = cambioEstatus.folio,
@@ -319,7 +324,7 @@ namespace Servicio2.EndPoints
                     });
                 }
             });
-            group.MapGet("ObtenerAusenciasEmpleado",[Authorize(Roles = "RH,Gerente")] async (Context context, [FromQuery] string numeroEmpleado, IMapper mapper) =>
+            group.MapGet("ObtenerAusenciasEmpleado", [Authorize(Roles = "RH,Gerente")] async (Context context, [FromQuery] string numeroEmpleado, IMapper mapper) =>
             {
                 var idEmpleado = await context.Empleados.Where(x => x.NumeroEmpleado == numeroEmpleado).Select(x => x.Id).FirstOrDefaultAsync();
                 if (idEmpleado <= 0)
