@@ -4,6 +4,9 @@ using Servicio2.Models.DbModels;
 using MassTransit;
 using Servicio2.Consumer;
 using Servicio2.Utility;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
@@ -15,6 +18,29 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader();
         });
 });
+var key = Encoding.ASCII.GetBytes("CLAVE_SE@#GURA_AUTH_BR&$AND$$ON_%");
+builder.Services.AddAuthorization();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false; 
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddMassTransit(config =>
 {
@@ -45,8 +71,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.AddSolicitudesEndPoints();
 app.AddEmpleadosEndPoints();
+app.AddAuthEndPoints();
 app.Run();

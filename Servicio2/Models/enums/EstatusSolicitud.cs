@@ -13,7 +13,6 @@
         vacaciones=0,
         enfermedad=1,
         permiso=2,
-        ausencia=3
     }
 
 }
